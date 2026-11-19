@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 // Only a salted PBKDF2 hash is stored here — never the password itself.
 const SALT = "fb43f58d13cc8eac6ddb90e06288d8ce";
@@ -6,6 +6,9 @@ const HASH = "05d3064d50de27b94b1eae45391d0119ae41ed46a3bec44b708fe85c937385cb";
 const ITERATIONS = 200_000;
 // Bump ACCESS_EPOCH to sign out everyone who is currently unlocked.
 const ACCESS_EPOCH = 2;
+// Lock again after this much time with no interaction.
+const IDLE_MS = 7 * 60 * 1000;
+const ACTIVITY_EVENTS = ["pointerdown", "pointermove", "keydown", "wheel", "scroll", "touchstart"];
 const STORAGE_KEY = `portfolio-unlocked-v${ACCESS_EPOCH}`;
 
 const toBytes = (hex: string) =>
@@ -40,6 +43,33 @@ export function PasswordGate({ children }: { children: ReactNode }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!unlocked) return;
+    let last = Date.now();
+    const touch = () => {
+      last = Date.now();
+    };
+    const check = () => {
+      if (Date.now() - last < IDLE_MS) return;
+      try {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+      setValue("");
+      setBusy(false);
+      setUnlocked(false);
+    };
+    ACTIVITY_EVENTS.forEach((ev) => window.addEventListener(ev, touch, { passive: true }));
+    document.addEventListener("visibilitychange", check);
+    const id = window.setInterval(check, 5000);
+    return () => {
+      ACTIVITY_EVENTS.forEach((ev) => window.removeEventListener(ev, touch));
+      document.removeEventListener("visibilitychange", check);
+      window.clearInterval(id);
+    };
+  }, [unlocked]);
 
   if (unlocked) return <>{children}</>;
 
