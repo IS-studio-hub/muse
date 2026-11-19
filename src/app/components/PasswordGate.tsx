@@ -4,7 +4,9 @@ import { useState, type FormEvent, type ReactNode } from "react";
 const SALT = "fb43f58d13cc8eac6ddb90e06288d8ce";
 const HASH = "05d3064d50de27b94b1eae45391d0119ae41ed46a3bec44b708fe85c937385cb";
 const ITERATIONS = 200_000;
-const STORAGE_KEY = "portfolio-unlocked";
+// Bump ACCESS_EPOCH to sign out everyone who is currently unlocked.
+const ACCESS_EPOCH = 2;
+const STORAGE_KEY = `portfolio-unlocked-v${ACCESS_EPOCH}`;
 
 const toBytes = (hex: string) =>
   new Uint8Array(hex.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
