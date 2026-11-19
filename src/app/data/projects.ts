@@ -7,6 +7,7 @@ import { wireframesData } from "./wireframesData";
 import { designSystemData } from "./designSystemData";
 import { figmaFilesData } from "./figmaFilesData";
 import { assetPath } from "../lib/assetPath";
+import { HIDDEN_SLUGS } from "./hiddenProjects";
 
 export type {
  ProcessPhase,
@@ -1866,7 +1867,7 @@ export const DEVELOPER_SLUGS = [
 ] as const;
 
 /** Projects removed from the site: no card and no page (their URLs go to 404). */
-const REMOVED_SLUGS = new Set<string>(["weebo", "CHaPPie", "50nny"]);
+const REMOVED_SLUGS = new Set<string>(["weebo", "CHaPPie", "50nny", ...HIDDEN_SLUGS]);
 
 const bySlug = (list: readonly string[]) =>
  list
